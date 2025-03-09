@@ -4,3 +4,6 @@ grafana/runtime-data/
 
 !grafana/runtime-data/.gitkeep
 !grafana/runtime-data/grafana.db
+.idea/House-Service.iml
+.idea/dataSources.xml
+.idea/modules.xml
