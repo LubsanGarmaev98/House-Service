@@ -9,6 +9,7 @@ import (
 	"github.com/timurzdev/mentorship-test-task/internal/deps"
 	"github.com/timurzdev/mentorship-test-task/internal/generated"
 	"github.com/timurzdev/mentorship-test-task/internal/handler/create_house"
+	"github.com/timurzdev/mentorship-test-task/internal/handler/dummy_login"
 	"github.com/timurzdev/mentorship-test-task/internal/handler/middlewares/prometheus"
 )
 
@@ -16,6 +17,7 @@ type Server struct {
 	logger             deps.Logger
 	address            string
 	createHouseHandler *create_house.Handler
+	getDummyLogin      *dummy_login.Handler
 
 	prometheusMiddleware *prometheus.Middleware
 }
@@ -24,11 +26,13 @@ func NewServer(
 	log deps.Logger,
 	address string,
 	chh *create_house.Handler,
+	gdl *dummy_login.Handler,
 	prometheusMiddleware *prometheus.Middleware,
 ) *Server {
 	return &Server{
 		address:              address,
 		createHouseHandler:   chh,
+		getDummyLogin:        gdl,
 		logger:               log,
 		prometheusMiddleware: prometheusMiddleware,
 	}
@@ -72,7 +76,7 @@ func (s *Server) PostHouseCreate(w http.ResponseWriter, r *http.Request) {
 
 // (GET /dummyLogin)
 func (s *Server) GetDummyLogin(w http.ResponseWriter, r *http.Request, params generated.GetDummyLoginParams) {
-	//not implemented
+	s.getDummyLogin.Handle(w, r, params)
 }
 
 // (POST /flat/create)

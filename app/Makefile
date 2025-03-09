@@ -15,3 +15,16 @@ install:
 .PHONY: generate
 generate:
 	go generate ./...
+
+.PHONY: up
+up:
+	@echo "--> Docker Compose Up..."
+	cd .. && docker compose up -d --build
+
+.PHONY: down
+down:
+	@echo "--> Docker Compose Down..."
+	cd .. && docker compose down
+
+.PHONY: restart
+restart: down up
