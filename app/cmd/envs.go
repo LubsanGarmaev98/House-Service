@@ -3,10 +3,10 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"os"
 	"strconv"
-
-	"github.com/pkg/errors"
+	"time"
 )
 
 func getStringFromEnv(envName string) (string, error) {
@@ -32,6 +32,21 @@ func getIntValueFromEnv(envName string, defaultValue int64) (int64, error) {
 
 	if sValue != "" {
 		value, err := strconv.ParseInt(sValue, 0, 32)
+		if err != nil {
+			return defaultValue, errors.Wrapf(err, "cant parse %s", envName)
+		}
+
+		return value, nil
+	}
+
+	return defaultValue, nil
+}
+
+func getTimeDurationFromEnv(envName string, defaultValue time.Duration) (time.Duration, error) {
+	sValue := os.Getenv(envName)
+
+	if sValue != "" {
+		value, err := time.ParseDuration(sValue)
 		if err != nil {
 			return defaultValue, errors.Wrapf(err, "cant parse %s", envName)
 		}

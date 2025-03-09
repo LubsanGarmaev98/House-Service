@@ -2,9 +2,12 @@ package cmd
 
 import (
 	"github.com/timurzdev/mentorship-test-task/internal/handler/create_house"
+	"github.com/timurzdev/mentorship-test-task/internal/handler/dummy_login"
 	"github.com/timurzdev/mentorship-test-task/internal/handler/middlewares/prometheus"
 	"github.com/timurzdev/mentorship-test-task/internal/handler/server"
 	"github.com/timurzdev/mentorship-test-task/internal/repository"
+	"github.com/timurzdev/mentorship-test-task/internal/service/roles"
+	"github.com/timurzdev/mentorship-test-task/internal/service/token"
 	create_house_usecase "github.com/timurzdev/mentorship-test-task/internal/usecase/create_house"
 )
 
@@ -18,8 +21,13 @@ type Internal struct {
 
 	server *server.Server
 
+	tokenService  *token.TokenService
+	rolesProvider *roles.RoleProvider
+
 	//handlers
 	createHouseHandler *create_house.Handler
+
+	dummyLogin *dummy_login.Handler
 
 	//usecases
 	createHouseUsecase *create_house_usecase.Usecase
@@ -46,6 +54,7 @@ func (i *Internal) GetServer() *server.Server {
 			i.GetLogger(),
 			i.configuration.GetServerConfiguration().GetAddress(),
 			i.GetCreateHouseHandler(),
+			i.GetDummyLoginHandler(),
 			i.GetPrometheusMiddleware(),
 		)
 	}
@@ -78,4 +87,32 @@ func (i *Internal) GetPrometheusMiddleware() *prometheus.Middleware {
 	}
 
 	return i.prometheusMiddleware
+}
+
+func (i *Internal) GetRolesProvider() *roles.RoleProvider {
+	if i.rolesProvider == nil {
+		i.rolesProvider = roles.NewRoleProvider()
+	}
+
+	return i.rolesProvider
+}
+
+func (i *Internal) GetDummyLoginHandler() *dummy_login.Handler {
+	if i.dummyLogin == nil {
+		i.dummyLogin = dummy_login.NewHandler(
+			i.GetTokenService(),
+		)
+	}
+
+	return i.dummyLogin
+}
+
+func (i *Internal) GetTokenService() *token.TokenService {
+	if i.tokenService == nil {
+		tokenConfigurations := i.configuration.GetTokenConfiguration()
+		mySigningKey := []byte(tokenConfigurations.secretKey)
+		i.tokenService = token.NewTokenService(mySigningKey, tokenConfigurations.tokenTTL)
+	}
+
+	return i.tokenService
 }
