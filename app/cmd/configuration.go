@@ -21,6 +21,9 @@ const (
 
 	envServerHost = "SERVER_HOST"
 	envServerPort = "SERVER_PORT"
+
+	envTokenSecretKey = "HOUSE_SERVICE_TOKEN_SECRET"
+	envTokenTTL       = "HOUSE_SERVICE_TOKEN_TTL"
 )
 
 func newFromEnv() *configuration {
@@ -33,6 +36,7 @@ func newFromEnv() *configuration {
 type configuration struct {
 	postgresConfgiration *postgresConfiguration
 	serverConfiguration  *serverConfiguration
+	tokenConfiguration   *tokenConfiguration
 }
 
 type postgresConfiguration struct {
@@ -49,6 +53,11 @@ type postgresConfiguration struct {
 type serverConfiguration struct {
 	host string
 	port int64
+}
+
+type tokenConfiguration struct {
+	secretKey string
+	tokenTTL  time.Duration
 }
 
 func (c *configuration) GetPostgresConfiguration() *postgresConfiguration {
@@ -151,4 +160,21 @@ func (c *configuration) GetServerConfiguration() *serverConfiguration {
 
 func (sc *serverConfiguration) GetAddress() string {
 	return fmt.Sprintf("%s:%d", sc.host, sc.port)
+}
+
+func (c *configuration) GetTokenConfiguration() *tokenConfiguration {
+	if c.tokenConfiguration == nil {
+		var err error
+		tc := &tokenConfiguration{}
+		c.tokenConfiguration = tc
+
+		tc.secretKey = getStringFromEnvOrDefault(envTokenSecretKey, "secretHouseService")
+
+		tc.tokenTTL, err = getTimeDurationFromEnv(envTokenTTL, time.Hour)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	return c.tokenConfiguration
 }
